@@ -14,8 +14,8 @@ import unicodedata
 
 #north
 
-bad_strings = ["'", "&"]
-subs_strings = ["xxx","yyy"]
+bad_strings = ["'", "&", "$"]
+subs_strings = ["xxx","yyy","zzz"]
 
 LATIN_1_CHARS = (
     ('\xe2\x80\x99', "'"),
@@ -45,7 +45,10 @@ LATIN_1_CHARS = (
     ('\xe2\x81\xbb', "-"),
     ('\xe2\x81\xbc', "="),
     ('\xe2\x81\xbd', "("),
-    ('\xe2\x81\xbe', ")")
+    ('\xe2\x81\xbe', ")"),
+    ("'","xxx"),
+    ("&","yyy"),
+    ("$","zzz"),
 )
 
 class News:
@@ -57,12 +60,15 @@ class News:
 
 def preprocess(line):  # replaces chars like ' or & with a random string which can be re replaced when the data is processed. was facing encoding issues.
     for i in xrange(len(bad_strings)):
+        line = line + ""
         line.replace(bad_strings[i],subs_strings[i])
+        # print(x)
     return line
 
 def postprocess(line):
+    x = ""
     for i in xrange(len(bad_strings)):
-        line.replace(subs_strings[i],bad_strings[i]);
+        line = line.replace(subs_strings[i],bad_strings[i]);
     return line
 
 def clean_latin1(data):
@@ -84,7 +90,7 @@ def populate_state(wordlist, locations, mapping):
         # print(type(line))
         line = line.strip()
         words = line.split(' ')
-        line = preprocess(line)
+        # line = preprocess(line)
         # print(words)
         # print(len(line))
         if(len(line)==0):
@@ -108,7 +114,11 @@ def populate_state(wordlist, locations, mapping):
             starting_word = line.split(' ')[0]
             if starting_word.lower()=='risk':
                 cur = locations[index]
-                cur[len(cur) - 1].risk = line.split(':')[1]
+                temp = line.split(':')
+                tempstr = ""
+                for i in range(1,len(temp)):
+                    tempstr += " "+temp[i]
+                cur[len(cur) - 1].risk = tempstr.strip()
                 i = 0
             else:
                 cur = locations[index]
@@ -116,7 +126,12 @@ def populate_state(wordlist, locations, mapping):
                 i=2
         else:
             cur = locations[index]
-            cur[len(cur) - 1].risk = line.split(':')[1]
+            temp = line.split(':')
+            tempstr = ""
+            for i in range(1, len(temp)):
+                tempstr += " " + temp[i]
+            cur[len(cur) - 1].risk = tempstr.strip()
+            # cur[len(cur) - 1].risk = line.split(':')[1]
             i = 0
     return
 
@@ -181,7 +196,7 @@ def create_templates(source,locations,isSingle):
     # print(output.encode('utf-8'))
     # output = unicodedata.normalize('NFKD', output).encode('ascii', 'ignore'
     output = unicodedata.normalize('NFKD', output).encode('ascii', 'ignore')
-    print(type(output))
+    # print(type(output))
     return output
 
 
@@ -195,13 +210,13 @@ def main():
     create_mappings(mapping) # maps string(eg national) with number corresponding to array index(eg 0)
     populate_parsed_data(locations,mapping) # reads input from sample text , cleans it, and populates the locations dict containing location wise news
     # templates for various locations
-    source_north = u"<tr><td class='td_states'><h3><span><b>North</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span>{{risk}}</p></div></td></tr>"
-    source_south = u"<tr><td class='td_states'><h3><span><b>South</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span>{{risk}}</p></div></td></tr>"
-    source_east =  u"<tr><td class='td_states'><h3><span><b>East</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span>{{risk}}</p></div></td></tr>"
-    source_west = u"<tr><td class='td_states'><h3><span><b>West</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span>{{risk}}</p></div></td></tr>"
-    source_international = u"<tr><td class='td_states'><h3><span><b>International</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span>{{risk}}</p></div></td></tr>"
-    source_top = u"<tr><td class='top_news'><h3><span><b>National</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span>{{risk}}</p></div></td></tr>"
-    source_others =  u"{{#list location}}<tr><td class='td_others'><div class='second_news_div'><h3 class='second_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment :</b></span> {{risk}}</p></div></td></tr>{{/list}}"
+    source_north = u"<tr><td class='td_states'><h3><span><b>North</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span>{{risk}}</p></div></td></tr>"
+    source_south = u"<tr><td class='td_states'><h3><span><b>South</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span>{{risk}}</p></div></td></tr>"
+    source_east =  u"<tr><td class='td_states'><h3><span><b>East</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span>{{risk}}</p></div></td></tr>"
+    source_west = u"<tr><td class='td_states'><h3><span><b>West</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span>{{risk}}</p></div></td></tr>"
+    source_international = u"<tr><td class='td_states'><h3><span><b>International</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span>{{risk}}</p></div></td></tr>"
+    source_top = u"<tr><td class='top_news'><h3><span><b>National</b></span></h3><div class='first_news_div'><h3 class='first_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span>{{risk}}</p></div></td></tr>"
+    source_others =  u"{{#list location}}<tr><td class='td_others'><div class='second_news_div'><h3 class='second_news_h3'>{{topic}}</h3><p class='p_intro'>{{intro}}</p></div></td></tr><tr><td class='td_others'><div style='border-right:3px solid #b91c12 !important;border-left:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;'><p  class = 'para'><span style='color:#b91c12 !important;font-size:20px !important'><b>Risk Comment:</b></span> {{risk}}</p></div></td></tr>{{/list}}"
     sources = []
     sources.append(source_top)
     sources.append(source_north)
@@ -225,8 +240,8 @@ def main():
     footer = "<tr><td><img src='http://kcom.work/sis-emailer4/02.jpg' style='display:block;margin-top:30px !important' width='900'></td></tr></table></div><style>table {width:750px !important;border-collapse: collapse !important;border:1px solid #e8e8e8 !important}h3 span {color : #b91c12 !important;background: #cfcdcd !important;font-family:'calibri';font-size:30px !important;padding-left:25px;padding-right:25px;padding-top:3px;padding-bottom:3px;margin-bottom:5px  !important;margin-bottom:0px;}.top_news {padding-left:45px !important;padding-right:45px !important;padding-top:50px  !important}.first_news_div {border-left:3px solid #b91c12 !important;border-right:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;padding-top:0px !important}.second_news_div {border-left:3px solid #b91c12 !important;border-right:3px solid #555555 !important;padding-left:20px !important;padding-right:20px !important;}.first_news_h3 {font-family:'calibri';font-size:20px !important;color:#b91c12 !important;margin-bottom:7px;}.second_news_h3 {font-family:'calibri';font-size:20px !important;color:#b91c12 !important;margin-bottom:7px !important;margin-top:7px !important;}.td_states {padding-left:45px !important;padding-right:45px !important;padding-top:10px  !important}.td_others {padding-left:45px !important;padding-right:45px !important;}.p_intro {font-family:'calibri';font-size:16px ;color:#333333 !important;margin-bottom:15px  !important;margin-top:7px !important;text-align:justify !important;"
     footer2 = "}.para {font-family:'calibri';font-size:16px; color:#333333 !important;margin-top:7px  !important;margin-bottom:15px  !important;text-align:justify !important;}</style>"
     yo = header + final_html + footer + footer2
-    postprocess(yo)
-    print(yo)
+    lo = postprocess(yo)
+    print(lo)
 
 
 

@@ -14,8 +14,8 @@ import unicodedata
 
 #north
 
-bad_strings = ["'", "&", "$"]
-subs_strings = ["xxx","yyy","zzz"]
+bad_strings = ["'", "&", "$",'"']
+subs_strings = ["xxx","yyy","zzz","www"]
 
 LATIN_1_CHARS = (
     ('\xe2\x80\x99', "'"),
@@ -49,6 +49,7 @@ LATIN_1_CHARS = (
     ("'","xxx"),
     ("&","yyy"),
     ("$","zzz"),
+    ('"',"www")
 )
 
 class News:
